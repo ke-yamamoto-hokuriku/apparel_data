@@ -2,8 +2,9 @@
 <html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>アパレル生産国チェック 2021–2026</title>
 <style>:root{--color-fg:#1f2328;--color-fg-muted:#59636e;--color-bg:#f6f7f9;--color-panel:#fff;--color-border-line:#d9dee3;--font-anthropic-sans:"Hiragino Sans","Yu Gothic","Meiryo",system-ui,sans-serif;--font-anthropic-serif:"Hiragino Sans","Yu Gothic","Meiryo",system-ui,sans-serif;--cds-font-size-caption:13px;--cds-font-size-body:15px;--cds-font-size-heading:18px;--cds-font-size-title:26px;--cds-font-weight-medium:600;--cds-gap-sm:8px;--cds-gap-md:12px;--cds-gap-lg:20px;--cds-gap-xl:24px;--cds-pad-lg:20px;--cds-radius:8px;--cds-chart-muted:#9aa4af;--cds-surface-popover:#fff;--cds-border:#c9d0d7;--cds-shadow-popover:0 2px 8px rgba(0,0,0,.15)}
-body{margin:0;background:var(--color-bg)}main{max-width:980px;margin:0 auto;padding:24px 16px 48px}
+body{margin:0;background:var(--color-bg)}main{max-width:1440px;margin:0 auto;padding:24px 16px 48px}
 .dash-select{font:inherit;padding:4px 8px;border:1px solid var(--color-border-line);border-radius:6px;background:#fff;color:var(--color-fg)}
+
 .ap{display:flex;flex-direction:column;gap:var(--cds-gap-xl);color:var(--color-fg);font-family:var(--font-anthropic-sans)}
 .ap-title{font-family:var(--font-anthropic-serif);font-weight:400;font-size:var(--cds-font-size-title);margin:0}
 .ap-lead{font-size:var(--cds-font-size-body);margin:var(--cds-gap-sm) 0 0;line-height:1.8}
@@ -33,81 +34,99 @@ body{margin:0;background:var(--color-bg)}main{max-width:980px;margin:0 auto;padd
 .ap-table .r{text-align:right}
 .ap-details{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);line-height:1.8}
 .ap-details summary{cursor:pointer;color:var(--color-fg)}
-</style></head><body><main>
 
+.ap-sticky{position:sticky;top:0;z-index:5;background:var(--color-bg);padding:10px 0;border-bottom:1px solid var(--color-border-line);display:flex;flex-direction:column;gap:6px}
+.ap-sticky .ap-lead{margin:0;font-size:var(--cds-font-size-caption)}
+.ap-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,430px),1fr));gap:var(--cds-gap-lg);align-items:start}
+.ap-grid .ap-card{padding:14px var(--cds-pad-lg)}
+.ap-tag{display:inline-block;font-size:11px;color:var(--color-fg-muted);border:1px solid var(--color-border-line);border-radius:10px;padding:0 7px;margin-left:6px;vertical-align:middle;font-weight:400}
+.ap-chart{min-height:160px}
+.ap-track{height:18px}
+.ap-row{margin:3px 0}
+</style></head><body><main>
 <div class="ap" lang="ja">
   <header id="top">
     <h1 class="ap-title">アパレル生産国チェック 2021–2026</h1>
-    <p class="ap-lead">表示中の服は <b data-draw="s-件数" data-source="summary" data-field="件数" data-row="0">—</b> 件。生産国が判明した <b data-draw="s-判明件数" data-source="summary" data-field="判明件数" data-row="0">—</b> 件のうち、最も多い生産国は <b data-draw="s-一位国" data-source="summary" data-field="一位国" data-row="0">—</b>（<b data-draw="s-一位割合" data-source="summary" data-field="一位割合" data-row="0">—</b>％）、次は <b data-draw="s-二位国" data-source="summary" data-field="二位国" data-row="0">—</b>（<b data-draw="s-二位割合" data-source="summary" data-field="二位割合" data-row="0">—</b>％）。</p>
-    <p class="ap-note" style="margin-top:8px">自分で分析したい人向けのデータ：<a href="apparel_data_2021_2026.csv" download>apparel_data_2021_2026.csv</a>（5,444件。Excel・Tableau・Exploratoryで開ける）</p>
+    <p class="ap-note" style="margin:4px 0 0">自分で分析したい人向けのデータ：<a href="apparel_data_2021_2026.csv" download>apparel_data_2021_2026.csv</a>（5,444件。Excel・Tableau・Exploratoryで開ける）</p>
   </header>
 
-  <div class="ap-filters" id="filters">
-    <label>調査年度
-      <select class="dash-select" data-param="year" aria-label="調査年度">
-        <option value="all">全年度</option><option>2021</option><option>2022</option><option>2023</option><option>2024</option><option>2025</option><option>2026</option>
-      </select>
-    </label>
-    <label>新品・古着
-      <select class="dash-select" data-param="cond" aria-label="新品・古着">
-        <option value="all">すべて</option><option>新品</option><option>古着</option><option>不明・もらいもの</option>
-      </select>
-    </label>
-    <button type="button" class="ap-btn" id="reset">絞り込みを解除</button>
+  <div class="ap-sticky" id="filters">
+    <div class="ap-filters">
+      <label>調査年度
+        <select class="dash-select" data-param="year" aria-label="調査年度">
+          <option value="all">全年度</option><option>2021</option><option>2022</option><option>2023</option><option>2024</option><option>2025</option><option>2026</option>
+        </select>
+      </label>
+      <label>新品・古着
+        <select class="dash-select" data-param="cond" aria-label="新品・古着">
+          <option value="all">すべて</option><option>新品</option><option>古着</option><option>不明・もらいもの</option>
+        </select>
+      </label>
+      <button type="button" class="ap-btn" id="reset">絞り込みを解除</button>
+    </div>
+    <p class="ap-lead">表示中の服は <b data-draw="s-件数" data-source="summary" data-field="件数" data-row="0">—</b> 件。生産国が判明した <b data-draw="s-判明件数" data-source="summary" data-field="判明件数" data-row="0">—</b> 件のうち、最も多い生産国は <b data-draw="s-一位国" data-source="summary" data-field="一位国" data-row="0">—</b>（<b data-draw="s-一位割合" data-source="summary" data-field="一位割合" data-row="0">—</b>％）、次は <b data-draw="s-二位国" data-source="summary" data-field="二位国" data-row="0">—</b>（<b data-draw="s-二位割合" data-source="summary" data-field="二位割合" data-row="0">—</b>％）。</p>
   </div>
 
-  <section class="ap-card" id="country">
-    <h2>生産国別の構成</h2>
-    <p class="ap-note">生産国が判明した服に占める割合。上位12か国とその他。上の絞り込みに連動。</p>
-    <div class="ap-chart" data-draw="c-country" data-source="by_country" role="img" aria-label="生産国別の割合の棒グラフ"></div>
-  </section>
+  <div class="ap-grid">
+    <section class="ap-card" id="country">
+      <h2>生産国別の構成<span class="ap-tag">年度・新品古着に連動</span></h2>
+      <p class="ap-note">生産国が判明した服に占める割合。上位12か国とその他。</p>
+      <div class="ap-chart" data-draw="c-country" data-source="by_country" role="img" aria-label="生産国別の割合の棒グラフ"></div>
+    </section>
 
-  <section class="ap-card" id="year">
-    <h2>調査年度別の地域構成</h2>
-    <p class="ap-note">各年度の履修者が入力した服の生産地域。「新品・古着」の絞り込みに連動。年度によって回答者が異なる点に注意。</p>
-    <div class="ap-chart" data-draw="c-year" data-source="by_year" role="img" aria-label="調査年度別の生産地域の構成"></div>
-  </section>
+    <section class="ap-card" id="kind">
+      <h2>服の種類別の地域構成<span class="ap-tag">年度・新品古着に連動</span></h2>
+      <p class="ap-note">服の種類ごとの生産地域の割合。</p>
+      <div class="ap-chart" data-draw="c-kind" data-source="by_kind" role="img" aria-label="服の種類別の生産地域の構成"></div>
+    </section>
 
-  <section class="ap-card" id="purchase">
-    <h2>購入年別の地域構成（新品のみ）</h2>
-    <p class="ap-note">購入年の記入がある新品を、買った年ごとに集計（2023年度以降の調査分）。絞り込みには連動しない。</p>
-    <div class="ap-chart" data-draw="c-purchase" data-source="by_purchase" role="img" aria-label="購入年別の生産地域の構成"></div>
-  </section>
+    <section class="ap-card" id="year">
+      <h2>調査年度別の地域構成<span class="ap-tag">新品古着に連動</span></h2>
+      <p class="ap-note">各年度の履修者が入力した服の生産地域。年度によって入力した学生は異なる。</p>
+      <div class="ap-chart" data-draw="c-year" data-source="by_year" role="img" aria-label="調査年度別の生産地域の構成"></div>
+    </section>
 
-  <section class="ap-card" id="cond">
-    <h2>新品と古着の比較</h2>
-    <p class="ap-note">「調査年度」の絞り込みに連動。</p>
-    <div class="ap-chart" data-draw="c-cond" data-source="by_cond" role="img" aria-label="新品と古着の生産地域の構成"></div>
-    <h3>古着で割合が高い生産国</h3>
-    <div class="ap-scroll">
-      <table class="ap-table" data-source="used_top" data-row-key="生産国">
-        <thead><tr><th data-field="生産国">生産国</th><th class="r" data-field="古着件数">古着の件数</th><th class="r" data-field="古着割合">古着での割合（％）</th><th class="r" data-field="新品割合">新品での割合（％）</th><th class="r" data-field="差">差（ポイント）</th></tr></thead>
-        <tbody data-draw="t-used"></tbody>
-      </table>
-    </div>
-  </section>
+    <section class="ap-card" id="purchase">
+      <h2>購入年別の地域構成（新品のみ）<span class="ap-tag">連動しない</span></h2>
+      <p class="ap-note">購入年の記入がある新品を、買った年ごとに集計（2023年度以降の調査分）。</p>
+      <div class="ap-chart" data-draw="c-purchase" data-source="by_purchase" role="img" aria-label="購入年別の生産地域の構成"></div>
+    </section>
 
-  <section class="ap-card" id="brand">
-    <h2>ブランド別の生産国</h2>
-    <p class="ap-note">ブランドを選ぶと、そのブランドの服の生産国を表示。上の絞り込みに連動。</p>
-    <div class="ap-filters"><label>ブランド
-      <select class="dash-select" data-draw="brand-select" data-source="brand_list" aria-label="ブランド"></select>
-    </label></div>
-    <div class="ap-chart" data-draw="c-brand" data-source="brand_country" role="img" aria-label="選択したブランドの生産国別の割合"></div>
-    <h3>件数の多いブランドと生産国の数</h3>
-    <div class="ap-scroll">
-      <table class="ap-table" data-source="brands" data-row-key="ブランド">
-        <thead><tr><th data-field="ブランド">ブランド</th><th data-field="本拠地">ブランドの本拠地</th><th class="r" data-field="件数">件数</th><th class="r" data-field="生産国数">生産国の数</th><th data-field="最多生産国">最も多い生産国</th><th class="r" data-field="最多割合">その割合（％）</th></tr></thead>
-        <tbody data-draw="t-brands"></tbody>
-      </table>
-    </div>
-  </section>
+    <section class="ap-card" id="cond">
+      <h2>新品と古着の比較<span class="ap-tag">年度に連動</span></h2>
+      <p class="ap-note">新品と古着それぞれの生産地域の割合。</p>
+      <div class="ap-chart" data-draw="c-cond" data-source="by_cond" role="img" aria-label="新品と古着の生産地域の構成"></div>
+    </section>
 
-  <section class="ap-card" id="kind">
-    <h2>服の種類別の地域構成</h2>
-    <p class="ap-note">上の絞り込みに連動。</p>
-    <div class="ap-chart" data-draw="c-kind" data-source="by_kind" role="img" aria-label="服の種類別の生産地域の構成"></div>
-  </section>
+    <section class="ap-card" id="brand">
+      <h2>ブランド別の生産国<span class="ap-tag">年度・新品古着に連動</span></h2>
+      <div class="ap-filters" style="margin-bottom:8px"><label>ブランド
+        <select class="dash-select" data-draw="brand-select" data-source="brand_list" aria-label="ブランド"></select>
+      </label></div>
+      <div class="ap-chart" data-draw="c-brand" data-source="brand_country" role="img" aria-label="選択したブランドの生産国別の割合"></div>
+    </section>
+
+    <section class="ap-card" id="used">
+      <h2>古着で割合が高い生産国<span class="ap-tag">年度に連動</span></h2>
+      <p class="ap-note">古着での割合から新品での割合を引いた差が大きい順。古着が2件以上の国。</p>
+      <div class="ap-scroll">
+        <table class="ap-table" data-source="used_top" data-row-key="生産国">
+          <thead><tr><th data-field="生産国">生産国</th><th class="r" data-field="古着件数">古着の件数</th><th class="r" data-field="古着割合">古着（％）</th><th class="r" data-field="新品割合">新品（％）</th><th class="r" data-field="差">差</th></tr></thead>
+          <tbody data-draw="t-used"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="ap-card" id="brands">
+      <h2>件数の多いブランドと生産国の数<span class="ap-tag">年度・新品古着に連動</span></h2>
+      <div class="ap-scroll">
+        <table class="ap-table" data-source="brands" data-row-key="ブランド">
+          <thead><tr><th data-field="ブランド">ブランド</th><th data-field="本拠地">本拠地</th><th class="r" data-field="件数">件数</th><th class="r" data-field="生産国数">生産国数</th><th data-field="最多生産国">最多の生産国</th><th class="r" data-field="最多割合">割合（％）</th></tr></thead>
+          <tbody data-draw="t-brands"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
 
   <details class="ap-details" id="about">
     <summary>このデータについて</summary>
@@ -116,7 +135,6 @@ body{margin:0;background:var(--color-bg)}main{max-width:980px;margin:0 auto;padd
     <p>地域の区分：東南アジア＝ベトナム・インドネシア・カンボジア・ミャンマー・マレーシア・タイ・フィリピン・ラオス／南アジア＝バングラデシュ・インド・パキスタン・スリランカ／中国には香港を含む。</p>
   </details>
 </div>
-
 </main>
 <script type="text/plain" id="csv">年度,種類,区分,購入年,ブランド,ブランド本拠地,生産国,地域
 2021,Tシャツ,不明・もらいもの,,不明,,中国,中国
