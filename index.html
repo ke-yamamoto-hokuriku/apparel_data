@@ -86,12 +86,6 @@ body{margin:0;background:var(--color-bg)}main{max-width:1440px;margin:0 auto;pad
       <div class="ap-chart" data-draw="c-country" data-source="by_country" role="img" aria-label="生産国別の割合の棒グラフ"></div>
     </section>
 
-    <section class="ap-card" id="kind">
-      <h2>服の種類別の地域構成<span class="ap-tag">年度・新品古着に連動</span></h2>
-      <p class="ap-note">服の種類ごとの生産地域の割合。</p>
-      <div class="ap-chart" data-draw="c-kind" data-source="by_kind" role="img" aria-label="服の種類別の生産地域の構成"></div>
-    </section>
-
     <section class="ap-card" id="year">
       <h2>調査年度別の地域構成<span class="ap-tag">新品古着に連動</span></h2>
       <p class="ap-note">各年度の履修者が入力した服の生産地域。年度によって入力した学生は異なる。</p>
@@ -110,14 +104,6 @@ body{margin:0;background:var(--color-bg)}main{max-width:1440px;margin:0 auto;pad
       <div class="ap-chart" data-draw="c-cond" data-source="by_cond" role="img" aria-label="新品と古着の生産地域の構成"></div>
     </section>
 
-    <section class="ap-card" id="brand">
-      <h2>ブランド別の生産国<span class="ap-tag">年度・新品古着に連動</span></h2>
-      <div class="ap-filters" style="margin-bottom:8px"><label>ブランド
-        <select class="dash-select" data-draw="brand-select" data-source="brand_list" aria-label="ブランド"></select>
-      </label></div>
-      <div class="ap-chart" data-draw="c-brand" data-source="brand_country" role="img" aria-label="選択したブランドの生産国別の割合"></div>
-    </section>
-
     <section class="ap-card" id="used">
       <h2>古着で割合が高い生産国<span class="ap-tag">年度に連動</span></h2>
       <p class="ap-note">古着での割合から新品での割合を引いた差が大きい順。古着が2件以上の国。</p>
@@ -127,6 +113,20 @@ body{margin:0;background:var(--color-bg)}main{max-width:1440px;margin:0 auto;pad
           <tbody data-draw="t-used"></tbody>
         </table>
       </div>
+    </section>
+
+    <section class="ap-card" id="kind">
+      <h2>服の種類別の地域構成<span class="ap-tag">年度・新品古着に連動</span></h2>
+      <p class="ap-note">服の種類ごとの生産地域の割合。</p>
+      <div class="ap-chart" data-draw="c-kind" data-source="by_kind" role="img" aria-label="服の種類別の生産地域の構成"></div>
+    </section>
+
+    <section class="ap-card" id="brand">
+      <h2>ブランド別の生産国<span class="ap-tag">年度・新品古着に連動</span></h2>
+      <div class="ap-filters" style="margin-bottom:8px"><label>ブランド
+        <select class="dash-select" data-draw="brand-select" data-source="brand_list" aria-label="ブランド"></select>
+      </label></div>
+      <div class="ap-chart" data-draw="c-brand" data-source="brand_country" role="img" aria-label="選択したブランドの生産国別の割合"></div>
     </section>
 
     <section class="ap-card" id="brands">
