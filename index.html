@@ -81,12 +81,6 @@ body{margin:0;background:var(--color-bg)}main{max-width:1440px;margin:0 auto;pad
 
   <div class="ap-grid">
 
-    <section class="ap-card" id="year">
-      <h2>調査年度別の地域構成<span class="ap-tag">新品古着に連動</span></h2>
-      <p class="ap-note">各年度の履修者が入力した服の生産地域。年度によって入力した学生は異なる。</p>
-      <div class="ap-chart" data-draw="c-year" data-source="by_year" role="img" aria-label="調査年度別の生産地域の構成"></div>
-    </section>
-
     <section class="ap-card" id="purchase">
       <h2>購入年別の地域構成（新品のみ）<span class="ap-tag">連動しない</span></h2>
       <p class="ap-note">購入年の記入がある新品を、買った年ごとに集計（2023年度以降の調査分）。</p>
@@ -96,6 +90,17 @@ body{margin:0;background:var(--color-bg)}main{max-width:1440px;margin:0 auto;pad
       <h2>生産国別の構成<span class="ap-tag">年度・新品古着に連動</span></h2>
       <p class="ap-note">生産国が判明した服に占める割合。上位12か国とその他。</p>
       <div class="ap-chart" data-draw="c-country" data-source="by_country" role="img" aria-label="生産国別の割合の棒グラフ"></div>
+    </section>
+
+    <section class="ap-card" id="kind">
+      <h2>服の種類別の地域構成<span class="ap-tag">年度・新品古着に連動</span></h2>
+      <p class="ap-note">服の種類ごとの生産地域の割合。</p>
+      <div class="ap-chart" data-draw="c-kind" data-source="by_kind" role="img" aria-label="服の種類別の生産地域の構成"></div>
+    </section>
+    <section class="ap-card" id="usedshare">
+      <h2>古着の割合の推移<span class="ap-tag">連動しない</span></h2>
+      <p class="ap-note">各年度に入力された服のうち、古着が占める割合。</p>
+      <div class="ap-chart" data-draw="c-usedshare" data-source="used_share" role="img" aria-label="調査年度別の古着の割合"></div>
     </section>
 
     <section class="ap-card" id="cond">
@@ -113,12 +118,6 @@ body{margin:0;background:var(--color-bg)}main{max-width:1440px;margin:0 auto;pad
           <tbody data-draw="t-used"></tbody>
         </table>
       </div>
-    </section>
-
-    <section class="ap-card" id="kind">
-      <h2>服の種類別の地域構成<span class="ap-tag">年度・新品古着に連動</span></h2>
-      <p class="ap-note">服の種類ごとの生産地域の割合。</p>
-      <div class="ap-chart" data-draw="c-kind" data-source="by_kind" role="img" aria-label="服の種類別の生産地域の構成"></div>
     </section>
 
     <section class="ap-card" id="brand">
@@ -5665,6 +5664,11 @@ dash.calc('brands', {inputs: ['apparel'], title: '件数の多いブランド', 
       const c = countries(v, 1)[0];
       return {ブランド: b, 本拠地: v[0].ブランド本拠地 || '', 件数: v.length, 生産国数: new Set(v.map((r) => r.生産国)).size, 最多生産国: c.生産国, 最多割合: c.割合};
     })});
+dash.calc('used_share', {inputs: ['apparel'], title: '調査年度別の古着の割合', description: '各年度に入力された服のうち、古着が占める割合。',
+  fn: (apparel) => ['2021', '2022', '2023', '2024', '2025', '2026'].map((y) => {
+    const v = apparel.filter((r) => r.年度 === y), u = v.filter((r) => r.区分 === '古着').length;
+    return {年度: y, 古着件数: u, 件数: v.length, 割合: pct(u, v.length)};
+  })});
 dash.calc('by_kind', {inputs: ['apparel'], title: '服の種類別の地域構成', description: '服の種類ごとに、生産国が判明した服を地域別に集計。',
   fn: (apparel) => shares(known(pick(apparel, true, true)), (r) => r.種類, KINDS, REG5)});
 
@@ -5743,6 +5747,7 @@ for (const [f, dec] of [['件数'], ['判明件数'], ['一位国'], ['一位割
 dash.draw('c-country', (el) => { const d = ready(el, 'by_country'); if (d) drawBars(el, d); });
 dash.draw('c-year', (el) => { const d = ready(el, 'by_year'); if (d) drawStack(el, d, REG5, '年度'); });
 dash.draw('c-purchase', (el) => { const d = ready(el, 'by_purchase'); if (d) drawStack(el, d, REG5, '年'); });
+dash.draw('c-usedshare', (el) => { const d = ready(el, 'used_share'); if (d) drawBars(el, d.map((r) => ({生産国: r.年度 + '年度', 割合: r.割合, 件数: r.古着件数})), '該当するデータがありません。'); });
 dash.draw('c-cond', (el) => { const d = ready(el, 'by_cond'); if (d) drawStack(el, d, REG8); });
 dash.draw('c-kind', (el) => { const d = ready(el, 'by_kind'); if (d) drawStack(el, d, REG5); });
 dash.draw('c-brand', (el) => { const d = ready(el, 'brand_country'); if (d) drawBars(el, d, 'この条件では、選んだブランドの服がありません。'); });
