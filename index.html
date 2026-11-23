@@ -44,6 +44,10 @@ body{margin:0;background:var(--color-bg)}main{max-width:1440px;margin:0 auto;pad
 .ap-track{height:18px}
 .ap-row{margin:3px 0}
 .ap-row,.ap-row.wide{grid-template-columns:7.5em 1fr auto}
+.ap-timeline input[type=range]{width:min(320px,40vw);accent-color:#1F3A5F}
+.ap-slabel{min-width:7em;font-variant-numeric:tabular-nums;color:#1F3A5F}
+.ap-play{min-width:6.5em;background:#1F3A5F;color:#fff;border-color:#1F3A5F}
+@media (prefers-reduced-motion: no-preference){.ap-seg{transition:width .7s ease}}
 .ap-grid{align-items:stretch}
 .ap-grid .ap-card{display:flex;flex-direction:column}
 .ap-grid .ap-card h2{min-height:2.6em}
@@ -75,6 +79,16 @@ body{margin:0;background:var(--color-bg)}main{max-width:1440px;margin:0 auto;pad
         </select>
       </label>
       <button type="button" class="ap-btn" id="reset">絞り込みを解除</button>
+    </div>
+    <div class="ap-filters ap-timeline">
+      <button type="button" class="ap-btn ap-play" id="play">▶ 再生</button>
+      <label>再生する軸
+        <select class="dash-select" id="axis" aria-label="再生する軸">
+          <option value="pyear">購入年（新品のみ）</option><option value="year">調査年度</option>
+        </select>
+      </label>
+      <input type="range" id="slider" min="0" max="7" step="1" value="0" aria-label="年">
+      <b id="slabel" class="ap-slabel">全期間</b>
     </div>
     <p class="ap-lead">表示中の服は <b data-draw="s-件数" data-source="summary" data-field="件数" data-row="0">—</b> 件。生産国が判明した <b data-draw="s-判明件数" data-source="summary" data-field="判明件数" data-row="0">—</b> 件のうち、最も多い生産国は <b data-draw="s-一位国" data-source="summary" data-field="一位国" data-row="0">—</b>（<b data-draw="s-一位割合" data-source="summary" data-field="一位割合" data-row="0">—</b>％）、次は <b data-draw="s-二位国" data-source="summary" data-field="二位国" data-row="0">—</b>（<b data-draw="s-二位割合" data-source="summary" data-field="二位割合" data-row="0">—</b>％）。</p>
   </div>
@@ -5600,7 +5614,7 @@ body{margin:0;background:var(--color-bg)}main{max-width:1440px;margin:0 auto;pad
 2026,靴,新品,2024,ADIDAS,ドイツ,ベトナム,東南アジア
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
-<script>const dash=(()=>{const P0={year:'all',cond:'all',brand:'UNIQLO'};let P={...P0};const calcs={},draws={},cache={};let rows=[];
+<script>const dash=(()=>{const P0={year:'all',cond:'all',pyear:'all',brand:'UNIQLO'};let P={...P0};const calcs={},draws={},cache={};let rows=[];
 const api={colors:['#2a6fbb','#e07b39','#3a9e75','#8b5fbf','#c94f7c','#b8962e','#2e9aa8'],
 params:()=>P,setParams:(o)=>{Object.assign(P,o);run();},resetParams:()=>{P={...P0};run();},
 calc:(id,o)=>{calcs[id]=o;},draw:(n,f)=>{draws[n]=f;},
@@ -5616,7 +5630,9 @@ const reg = (r, order) => order.includes(r.地域) ? r.地域 : 'その他';
 const pct = (n, d) => d ? Math.round(n / d * 1000) / 10 : 0;
 function pick(rows, useYear, useCond) {
   const p = dash.params();
-  return rows.filter((r) => (!useYear || p.year === 'all' || r.年度 === p.year) && (!useCond || p.cond === 'all' || r.区分 === p.cond));
+  return rows.filter((r) => (!useYear || p.year === 'all' || r.年度 === p.year)
+    && (!useYear || p.pyear === 'all' || (r.区分 === '新品' && r.購入年 === p.pyear))
+    && (!useCond || p.cond === 'all' || r.区分 === p.cond));
 }
 const known = (rows) => rows.filter((r) => r.生産国 !== '不明');
 function shares(rows, catOf, cats, order) {
@@ -5688,10 +5704,12 @@ function ready(el, id) {
   return null;
 }
 function tipFor(el) {
-  const tip = mk('div', 'ap-tip'); tip.hidden = true; el.append(tip);
-  return (node, text) => {
+  let tip = el.querySelector(':scope > .ap-tip');
+  if (!tip) { tip = mk('div', 'ap-tip'); tip.hidden = true; el.append(tip); }
+  return (node) => {
+    if (node._tipped) return; node._tipped = true;
     const show = (e) => {
-      tip.textContent = text; tip.hidden = false;
+      tip.textContent = node.dataset.tip || ''; tip.hidden = false;
       const b = el.getBoundingClientRect();
       tip.style.left = Math.max(0, Math.min(e.clientX - b.left + 10, b.width - tip.offsetWidth - 4)) + 'px';
       tip.style.top = (e.clientY - b.top + 14) + 'px';
@@ -5700,40 +5718,86 @@ function tipFor(el) {
     node.addEventListener('pointerleave', () => { tip.hidden = true; });
   };
 }
-function drawBars(el, rows, emptyText) {
-  el.replaceChildren();
-  if (!rows.length) { el.append(mk('span', null, emptyText || '該当するデータがありません。')); return; }
-  const tip = tipFor(el), max = d3.max(rows, (r) => r.割合) || 1;
-  for (const r of rows) {
-    const row = mk('div', 'ap-row wide'), track = mk('div', 'ap-track'), seg = mk('div', 'ap-seg');
-    seg.style.width = (r.割合 / max * 100) + '%';
-    seg.style.background = r.生産国 === 'その他' ? 'var(--cds-chart-muted)' : dash.colors[0];
-    track.append(seg);
-    row.append(mk('span', 'ap-rl', r.生産国), track, mk('span', 'ap-rn', r.割合.toFixed(1) + '％（' + fmt(r.件数) + '件）'));
-    tip(row, r.生産国 + '：' + r.割合.toFixed(1) + '％（' + fmt(r.件数) + '件）');
-    el.append(row);
+function prepMap(el) {
+  if (!el._map) el._map = new Map();
+  for (const [k, n] of el._map) if (!el.contains(n)) el._map.delete(k);
+  return el._map;
+}
+function emptyMsg(el, show, text) {
+  let m = el.querySelector(':scope > .ap-empty');
+  if (show) {
+    for (const n of el._map.values()) n.remove(); el._map.clear();
+    const lg = el.querySelector(':scope > .ap-legend'); if (lg) lg.hidden = true;
+    if (!m) { m = mk('span', 'ap-empty'); el.append(m); }
+    m.textContent = text || '該当するデータがありません。';
+  } else {
+    if (m) m.remove();
+    const lg = el.querySelector(':scope > .ap-legend'); if (lg) lg.hidden = false;
   }
 }
-function drawStack(el, rows, order, suffix) {
-  el.replaceChildren();
-  const cats = [...new Set(rows.map((r) => r.区分))].filter((c) => rows.find((r) => r.区分 === c).計 > 0);
-  if (!cats.length) { el.append(mk('span', null, '該当するデータがありません。')); return; }
-  const legend = mk('div', 'ap-legend');
-  for (const g of order) { const s = mk('span'), i = mk('i'); i.style.background = colorOf(g, order); s.append(i, mk('span', null, g)); legend.append(s); }
-  el.append(legend);
-  const tip = tipFor(el);
-  for (const c of cats) {
-    const sub = rows.filter((r) => r.区分 === c), row = mk('div', 'ap-row'), track = mk('div', 'ap-track');
-    for (const r of sub) {
-      if (!r.件数) continue;
-      const seg = mk('div', 'ap-seg', r.割合 >= 7 ? Math.round(r.割合) + '%' : '');
-      seg.style.width = r.割合 + '%'; seg.style.background = colorOf(r.地域, order);
-      tip(seg, c + (suffix || '') + '・' + r.地域 + '：' + r.割合.toFixed(1) + '％（' + fmt(r.件数) + '件）');
-      track.append(seg);
+function grow(seg, w) {
+  if (seg._new) { seg._new = false; void seg.offsetWidth; }
+  seg.style.width = w;
+}
+function drawBars(el, rows, emptyText) {
+  const map = prepMap(el), tip = tipFor(el);
+  if (!rows.length) { emptyMsg(el, true, emptyText); return; }
+  emptyMsg(el, false);
+  const max = d3.max(rows, (r) => r.割合) || 1, keep = new Set();
+  for (const r of rows) {
+    const key = r.生産国; keep.add(key);
+    let row = map.get(key);
+    if (!row) {
+      row = mk('div', 'ap-row wide');
+      const track = mk('div', 'ap-track'), seg = mk('div', 'ap-seg');
+      seg.style.width = '0%'; seg._new = true; track.append(seg);
+      row._seg = seg; row._num = mk('span', 'ap-rn');
+      row.append(mk('span', 'ap-rl', key), track, row._num);
+      map.set(key, row); tip(row);
     }
-    row.append(mk('span', 'ap-rl', c + (suffix || '')), track, mk('span', 'ap-rn', fmt(sub[0].計) + '件'));
+    row._seg.style.background = key === 'その他' ? 'var(--cds-chart-muted)' : dash.colors[0];
+    const txt = r.割合.toFixed(1) + '％（' + fmt(r.件数) + '件）';
+    row._num.textContent = txt; row.dataset.tip = key + '：' + txt;
+    el.append(row);
+    grow(row._seg, (r.割合 / max * 100) + '%');
+  }
+  for (const [k, n] of map) if (!keep.has(k)) { n.remove(); map.delete(k); }
+}
+function drawStack(el, rows, order, suffix) {
+  const map = prepMap(el), tip = tipFor(el);
+  const cats = [...new Set(rows.map((r) => r.区分))].filter((c) => rows.find((r) => r.区分 === c).計 > 0);
+  if (!el.querySelector(':scope > .ap-legend')) {
+    const legend = mk('div', 'ap-legend');
+    for (const g of order) { const sp = mk('span'), i = mk('i'); i.style.background = colorOf(g, order); sp.append(i, mk('span', null, g)); legend.append(sp); }
+    el.prepend(legend);
+  }
+  if (!cats.length) { emptyMsg(el, true); return; }
+  emptyMsg(el, false);
+  const keep = new Set();
+  for (const c of cats) {
+    keep.add(c);
+    let row = map.get(c);
+    if (!row) {
+      row = mk('div', 'ap-row'); const track = mk('div', 'ap-track'); row._segs = {};
+      for (const g of order) {
+        const seg = mk('div', 'ap-seg'); seg.style.width = '0%'; seg._new = true;
+        seg.style.background = colorOf(g, order); track.append(seg); row._segs[g] = seg; tip(seg);
+      }
+      row._num = mk('span', 'ap-rn');
+      row.append(mk('span', 'ap-rl', c + (suffix || '')), track, row._num);
+      map.set(c, row);
+    }
+    const sub = rows.filter((r) => r.区分 === c);
+    for (const r of sub) {
+      const seg = row._segs[r.地域];
+      seg.textContent = r.割合 >= 7 ? Math.round(r.割合) + '%' : '';
+      seg.dataset.tip = c + (suffix || '') + '・' + r.地域 + '：' + r.割合.toFixed(1) + '％（' + fmt(r.件数) + '件）';
+      grow(seg, r.割合 + '%');
+    }
+    row._num.textContent = fmt(sub[0].計) + '件';
     el.append(row);
   }
+  for (const [k, n] of map) if (!keep.has(k)) { n.remove(); map.delete(k); }
 }
 function drawTable(tbody, rows, cols) {
   tbody.replaceChildren();
@@ -5768,7 +5832,35 @@ dash.draw('brand-select', (sel) => {
 
 function syncControls() { document.querySelectorAll('select[data-param]').forEach((s) => { s.value = dash.params()[s.dataset.param]; }); }
 document.querySelectorAll('select[data-param]').forEach((s) => s.addEventListener('change', () => dash.setParams({[s.dataset.param]: s.value})));
-document.querySelectorAll('#reset').forEach((b) => b.addEventListener('click', () => { dash.resetParams(); syncControls(); }));
+const AXES = {pyear: ['2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'], year: ['2021', '2022', '2023', '2024', '2025', '2026']};
+const axisEl = document.getElementById('axis'), slider = document.getElementById('slider'),
+  slabel = document.getElementById('slabel'), playBtn = document.getElementById('play');
+let timer = null;
+function stopPlay() { if (timer) { clearInterval(timer); timer = null; } playBtn.textContent = '▶ 再生'; }
+function setAxisRange() { slider.max = AXES[axisEl.value].length - 1; }
+function showYear(i) {
+  const ax = axisEl.value, y = AXES[ax][i];
+  slider.value = i;
+  slabel.textContent = ax === 'pyear' ? y + '年に購入' : y + '年度';
+  dash.setParams(ax === 'pyear' ? {pyear: y, year: 'all'} : {year: y, pyear: 'all'});
+  syncControls();
+}
+function clearYear() { slabel.textContent = '全期間'; slider.value = 0; }
+axisEl.addEventListener('change', () => { stopPlay(); setAxisRange(); dash.setParams({year: 'all', pyear: 'all'}); clearYear(); syncControls(); });
+slider.addEventListener('input', () => { stopPlay(); showYear(+slider.value); });
+playBtn.addEventListener('click', () => {
+  if (timer) { stopPlay(); return; }
+  const n = AXES[axisEl.value].length;
+  let i = (slabel.textContent === '全期間' || +slider.value >= n - 1) ? 0 : +slider.value + 1;
+  showYear(i); playBtn.textContent = '■ 停止';
+  timer = setInterval(() => { i += 1; if (i >= n) { stopPlay(); return; } showYear(i); }, 1500);
+});
+document.querySelectorAll('select[data-param="year"]').forEach((sel) => sel.addEventListener('change', () => {
+  stopPlay(); dash.setParams({pyear: 'all'});
+  if (sel.value === 'all') clearYear(); else { axisEl.value = 'year'; setAxisRange(); slider.value = AXES.year.indexOf(sel.value); slabel.textContent = sel.value + '年度'; }
+}));
+document.querySelectorAll('#reset').forEach((b) => b.addEventListener('click', () => { stopPlay(); dash.resetParams(); clearYear(); syncControls(); }));
+setAxisRange();
 syncControls();
 
 dash.start(d3.csvParse(document.getElementById('csv').textContent.trim()));
