@@ -97,6 +97,30 @@ body{margin:0;background:var(--color-bg)}main{max-width:1440px;margin:0 auto;pad
       <p class="ap-note">生産国が判明した服に占める割合。上位12か国とその他。</p>
       <div class="ap-chart" data-draw="c-country" data-source="by_country" role="img" aria-label="生産国別の割合の棒グラフ"></div>
     </section>
+
+    <section class="ap-card" id="kind">
+      <h2>服の種類別の地域構成<span class="ap-tag">年度・新品古着に連動</span></h2>
+      <p class="ap-note">服の種類ごとの生産地域の割合。</p>
+      <div class="ap-chart" data-draw="c-kind" data-source="by_kind" role="img" aria-label="服の種類別の生産地域の構成"></div>
+    </section>
+
+    <section class="ap-card" id="brands">
+      <h2>件数の多いブランドと生産国の数<span class="ap-tag">年度・新品古着に連動</span></h2>
+      <div class="ap-scroll">
+        <table class="ap-table" data-source="brands" data-row-key="ブランド">
+          <thead><tr><th data-field="ブランド">ブランド</th><th data-field="本拠地">本拠地</th><th class="r" data-field="件数">件数</th><th class="r" data-field="生産国数">生産国数</th><th data-field="最多生産国">最多の生産国</th><th class="r" data-field="最多割合">割合（％）</th></tr></thead>
+          <tbody data-draw="t-brands"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="ap-card" id="brand">
+      <h2>ブランド別の生産国<span class="ap-tag">年度・新品古着に連動</span></h2>
+      <div class="ap-filters" style="margin-bottom:8px"><label>ブランド
+        <select class="dash-select" data-draw="brand-select" data-source="brand_list" aria-label="ブランド"></select>
+      </label></div>
+      <div class="ap-chart" data-draw="c-brand" data-source="brand_country" role="img" aria-label="選択したブランドの生産国別の割合"></div>
+    </section>
     <section class="ap-card" id="usedshare">
       <h2>古着の割合の推移<span class="ap-tag">連動しない</span></h2>
       <p class="ap-note">各年度に入力された服のうち、古着が占める割合。</p>
@@ -116,30 +140,6 @@ body{margin:0;background:var(--color-bg)}main{max-width:1440px;margin:0 auto;pad
         <table class="ap-table" data-source="used_top" data-row-key="生産国">
           <thead><tr><th data-field="生産国">生産国</th><th class="r" data-field="古着件数">古着の件数</th><th class="r" data-field="古着割合">古着（％）</th><th class="r" data-field="新品割合">新品（％）</th><th class="r" data-field="差">差</th></tr></thead>
           <tbody data-draw="t-used"></tbody>
-        </table>
-      </div>
-    </section>
-
-    <section class="ap-card" id="kind">
-      <h2>服の種類別の地域構成<span class="ap-tag">年度・新品古着に連動</span></h2>
-      <p class="ap-note">服の種類ごとの生産地域の割合。</p>
-      <div class="ap-chart" data-draw="c-kind" data-source="by_kind" role="img" aria-label="服の種類別の生産地域の構成"></div>
-    </section>
-
-    <section class="ap-card" id="brand">
-      <h2>ブランド別の生産国<span class="ap-tag">年度・新品古着に連動</span></h2>
-      <div class="ap-filters" style="margin-bottom:8px"><label>ブランド
-        <select class="dash-select" data-draw="brand-select" data-source="brand_list" aria-label="ブランド"></select>
-      </label></div>
-      <div class="ap-chart" data-draw="c-brand" data-source="brand_country" role="img" aria-label="選択したブランドの生産国別の割合"></div>
-    </section>
-
-    <section class="ap-card" id="brands">
-      <h2>件数の多いブランドと生産国の数<span class="ap-tag">年度・新品古着に連動</span></h2>
-      <div class="ap-scroll">
-        <table class="ap-table" data-source="brands" data-row-key="ブランド">
-          <thead><tr><th data-field="ブランド">ブランド</th><th data-field="本拠地">本拠地</th><th class="r" data-field="件数">件数</th><th class="r" data-field="生産国数">生産国数</th><th data-field="最多生産国">最多の生産国</th><th class="r" data-field="最多割合">割合（％）</th></tr></thead>
-          <tbody data-draw="t-brands"></tbody>
         </table>
       </div>
     </section>
